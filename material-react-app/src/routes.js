@@ -138,6 +138,14 @@ const routes = [
     component: <SignUp />,
   },
   {
+    type: "collapse",
+    name: "Reset Password",
+    key: "reset-password-link",
+    icon: <Icon fontSize="small">lock_reset</Icon>,
+    route: "/auth/forgot-password",
+    component: <ForgotPassword />,
+  },
+  {
     type: "auth",
     name: "Login",
     key: "login",
