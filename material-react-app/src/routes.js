@@ -52,6 +52,8 @@ import Login from "auth/login";
 import Register from "auth/register";
 import ForgotPassword from "auth/forgot-password";
 import ResetPassword from "auth/reset-password";
+import CoursesList from "layouts/courses/CoursesList";
+import CourseDetailsPage from "layouts/courses/CourseDetailsPage"
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -176,6 +178,20 @@ const routes = [
     icon: <Icon fontSize="small">assignment</Icon>,
     route: "/auth/reset-password",
     component: <ResetPassword />,
+  },
+  {
+    type: "collapse",
+    name: "Courses",
+    key: "courses",
+    icon: <Icon fontSize="small">school</Icon>,
+    route: "/courses/1",
+    component: <CoursesList />,
+  },
+  {
+    type: "route",
+    key: "course-details",
+    route: "/courses/:id",
+    component: <CourseDetailsPage />,
   },
 ];
 

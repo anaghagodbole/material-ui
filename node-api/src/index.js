@@ -3,8 +3,9 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import "./passport.js";
+import passport from "passport"; 
 import { dbConnect } from "./mongo";
-import { meRoutes, authRoutes } from "./routes";
+import { meRoutes, authRoutes, courseRoutes } from "./routes";
 import path from "path";
 import * as fs from "fs";
 import cron from "node-cron";
@@ -39,6 +40,9 @@ app.get("/", function (req, res) {
 
 app.use("/", authRoutes);
 app.use("/me", meRoutes);
+
+app.use(passport.initialize());
+app.use("/courses", courseRoutes);
 
 if (process.env.SCHEDULE_HOUR) {
   cron.schedule(`0 */${process.env.SCHEDULE_HOUR} * * *'`, () => {
