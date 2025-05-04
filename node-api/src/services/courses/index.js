@@ -1,6 +1,6 @@
 import Course from "../../schemas/course.schema.js";
 import { Module } from "../../schemas/module.schema.js";
-
+import { userModel } from "../../schemas/user.schema.js";
 
 export const getAllCourses = async (req, res) => {
   const courses = await Course.find();
@@ -42,4 +42,16 @@ export const getCourseById = async (req, res) => {
     console.error("Error fetching course:", error);
     res.status(500).json({ message: "Failed to fetch course" });
   }
+};
+
+export const purchaseCourse = async (req, res) => {
+  const user = await userModel.findById(req.user._id);
+  const courseId = req.params.id;
+
+  if (!user.purchasedCourses.includes(courseId)) {
+    user.purchasedCourses.push(courseId);
+    await user.save();
+  }
+
+  res.json({ success: true });
 };

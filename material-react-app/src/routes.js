@@ -53,7 +53,7 @@ import Register from "auth/register";
 import ForgotPassword from "auth/forgot-password";
 import ResetPassword from "auth/reset-password";
 import CoursesList from "layouts/courses/CoursesList";
-import CourseDetailsPage from "layouts/courses/CourseDetailsPage"
+import CourseDetails from "layouts/courses/CourseDetails"
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -191,7 +191,7 @@ const routes = [
     type: "route",
     key: "course-details",
     route: "/courses/:id",
-    component: <CourseDetailsPage />,
+    component: <CourseDetails />,
   },
 ];
 

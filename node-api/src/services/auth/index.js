@@ -30,7 +30,7 @@ export const loginRouteHandler = async (req, res, email, password) => {
       // Generate JWT token
       const token = jwt.sign(
         { id: foundUser.id, email: foundUser.email },
-        "token",
+        process.env.JWT_SECRET,
         {
           expiresIn: "24h",
         }
@@ -40,6 +40,7 @@ export const loginRouteHandler = async (req, res, email, password) => {
         expires_in: "24h",
         access_token: token,
         refresh_token: token,
+        user: foundUser
       });
     } else {
       return res.status(400).json({
@@ -76,7 +77,7 @@ export const registerRouteHandler = async (req, res, name, email, password) => {
   await newUser.save();
 
   // Generate JWT token
-  const token = jwt.sign({ id: newUser.id, email: newUser.email }, "token", {
+  const token = jwt.sign({ id: newUser.id, email: newUser.email }, process.env.JWT_SECRET, {
     expiresIn: "24h",
   });
   return res.status(200).json({

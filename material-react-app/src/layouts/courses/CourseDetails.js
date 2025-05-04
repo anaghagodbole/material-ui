@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import courseService from "services/course-service";
 
@@ -40,13 +40,12 @@ function CourseDetails() {
   
   const isPurchased = course ? course.purchased : false;
   
-  console.log("id", id)
+  console.log("course", course)
   useEffect(() => {
     const fetchCourse = async () => {
       try {
         setLoading(true);
         const response = await courseService.getCourseById(id);
-        console.log("data is", response, response.data)
         setCourse(response.data);
       } catch (err) {
         console.error("Error fetching course:", err);
@@ -59,7 +58,6 @@ function CourseDetails() {
     fetchCourse();
   }, [id]);
   
-  
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
@@ -68,7 +66,12 @@ function CourseDetails() {
     setPurchaseLoading(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Call the purchase API
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user?.id;
+      await courseService.purchaseCourse(id, userId);
+      
+      // Update course state to purchased
       setCourse({
         ...course,
         purchased: true
@@ -78,16 +81,17 @@ function CourseDetails() {
       setTimeout(() => setPurchaseSuccess(false), 3000);
     } catch (err) {
       console.error("Purchase error:", err);
-      setError('Failed to process your purchase. Please try again later.');
+      setError("Failed to purchase course. Please try again later.");
     } finally {
       setPurchaseLoading(false);
     }
   };
   
   const handleUnlockModule = async (moduleId) => {
-    try { 
-      await new Promise(resolve => setTimeout(resolve, 800));
-    
+    try {
+      // Call unlock module API
+      await courseService.unlockModule(id, moduleId);
+      
       setCourse({
         ...course,
         modules: course.modules.map(module => 
@@ -97,26 +101,50 @@ function CourseDetails() {
         )
       });
       
-      setExpandedModules({
-        ...expandedModules,
+      setExpandedModules(prev => ({
+        ...prev,
         [moduleId]: true
-      });
+      }));
       
       return true;
     } catch (err) {
       console.error("Unlock error:", err);
-      setError('Failed to unlock module. Please try again later.');
+      setError("Failed to unlock module. Please try again later.");
       return false;
     }
   };
   
+  // const toggleModuleExpansion = (moduleId) => {
+  //   console.log('Toggling module:', moduleId);
+  //   console.log('Current expanded modules:', expandedModules);
+    
+  //   setExpandedModules(prev => {
+  //     const newState = {
+  //       ...prev,
+  //       [moduleId]: !prev[moduleId]
+  //     };
+  //     console.log('New expanded modules:', newState);
+  //     return newState;
+  //   });
+  // };
+  
   const toggleModuleExpansion = (moduleId) => {
-    setExpandedModules(prev => ({
-      ...prev,
-      [moduleId]: !prev[moduleId]
-    }));
+    console.log('=== Module Toggle Debug ===');
+    console.log('Module ID clicked:', moduleId);
+    console.log('Current expandedModules state before update:', JSON.stringify(expandedModules, null, 2));
+    
+    setExpandedModules(prev => {
+      console.log('Previous state in setter:', JSON.stringify(prev, null, 2));
+      const newState = {
+        ...prev,
+        [moduleId]: !prev[moduleId]
+      };
+      console.log('New state to be set:', JSON.stringify(newState, null, 2));
+      return newState;
+    });
   };
   
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -160,7 +188,7 @@ function CourseDetails() {
 
         {purchaseSuccess && (
           <MDAlert color="success" dismissible sx={{ mb: 3 }}>
-            Course successfully purchased! You now have access to all modules.
+            Course successfully purchased! You now have full access to all modules.
           </MDAlert>
         )}
 
@@ -280,22 +308,14 @@ function CourseDetails() {
                           fullWidth
                           onClick={handlePurchase}
                           disabled={purchaseLoading}
-                          sx={{ py: 1.5, mb: 2 }}
+                          sx={{ py: 1.5, mb: 3 }}
                         >
                           {purchaseLoading ? (
                             <CircularProgress size={24} color="inherit" />
                           ) : (
-                            "Enroll for Free"
+                            "Enroll Now"
                           )}
                         </MDButton>
-
-                        <MDTypography
-                          variant="caption"
-                          color="text"
-                          sx={{ mb: 3, textAlign: "center" }}
-                        >
-                          Free 7-day trial, then ${course.price}/month
-                        </MDTypography>
                       </>
                     ) : (
                       <>
@@ -420,7 +440,7 @@ function CourseDetails() {
           </MDBox>
         </Card>
 
-        <MDBox sx={{ width: "100%", mb: 3 }}>
+        {/* <MDBox sx={{ width: "100%", mb: 3 }}>
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
@@ -454,6 +474,51 @@ function CourseDetails() {
               iconPosition="start"
               id="course-tab-0"
               aria-controls="course-tabpanel-0"
+            />
+            <Tab
+              label="Instructor"
+              icon={<Icon>person</Icon>}
+              iconPosition="start"
+              id="course-tab-2"
+              aria-controls="course-tabpanel-2"
+            />
+          </Tabs>
+        </MDBox> */}
+
+        <MDBox sx={{ width: "100%", mb: 3 }}>
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            textColor="primary"
+            indicatorColor="info"
+            sx={{
+              "& .MuiTab-root": {
+                minWidth: "auto",
+                mx: 2,
+                px: 2,
+                py: 1.5,
+                borderRadius: 1,
+                "&.Mui-selected": {
+                  bgcolor: "rgba(73, 163, 241, 0.1)",
+                  color: "info.main",
+                  fontWeight: "bold",
+                },
+              },
+            }}
+          >
+            <Tab
+              label="About"
+              icon={<Icon>info</Icon>}
+              iconPosition="start"
+              id="course-tab-0"
+              aria-controls="course-tabpanel-0"
+            />
+            <Tab
+              label="Modules"
+              icon={<Icon>menu_book</Icon>}
+              iconPosition="start"
+              id="course-tab-1"
+              aria-controls="course-tabpanel-1"
             />
             <Tab
               label="Instructor"
@@ -560,7 +625,7 @@ function CourseDetails() {
               <MDTypography variant="h5">Course Content</MDTypography>
               <Box>
                 <MDTypography variant="button" color="text">
-                  {course.modules.length} modules • {course.approxHours} hours
+                  {course.modules.length} modules • {course.duration} hours
                   total
                 </MDTypography>
               </Box>
@@ -571,7 +636,7 @@ function CourseDetails() {
                 key={module.id}
                 module={module}
                 index={index + 1}
-                isExpanded={expandedModules[module.id] || false}
+                isExpanded={!!expandedModules[module.id]}
                 isPurchased={isPurchased}
                 onToggleExpand={() => toggleModuleExpansion(module.id)}
                 onUnlock={() => handleUnlockModule(module.id)}
@@ -579,8 +644,6 @@ function CourseDetails() {
             ))}
           </MDBox>
         </TabPanel>
-
-       
 
         <TabPanel value={activeTab} index={2}>
           <Card>

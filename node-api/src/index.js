@@ -38,10 +38,9 @@ app.get("/", function (req, res) {
   res.sendFile(path.join(__dirname, "/src/landing/index.html"));
 });
 
+app.use(passport.initialize());
 app.use("/", authRoutes);
 app.use("/me", meRoutes);
-
-app.use(passport.initialize());
 app.use("/courses", courseRoutes);
 
 if (process.env.SCHEDULE_HOUR) {

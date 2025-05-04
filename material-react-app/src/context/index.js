@@ -57,8 +57,11 @@ const AuthContextProvider = ({ children }) => {
     navigate(location.pathname);
   }, [isAuthenticated]);
 
-  const login = (token) => {
+  const login = (token, user) => {
+    console.log("Execute login")
     localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+
     setIsAuthenticated(true);
     navigate("/dashboard");
   };

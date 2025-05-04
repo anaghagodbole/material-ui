@@ -85,7 +85,7 @@ function Login() {
 
     try {
       const response = await AuthService.login(myData);
-      authContext.login(response.access_token, response.refresh_token);
+      authContext.login(response.access_token, response.user);
     } catch (res) {
       if (res.hasOwnProperty("message")) {
         setCredentialsError(res.message);

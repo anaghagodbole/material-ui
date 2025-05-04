@@ -20,7 +20,8 @@ passport.use(
           return done(null, user);
         })
         .catch((err) => {
-          return done(err);
+          console.error("Error in passport strategy:", err);
+          return done(err, false);
         });
     }
   )
