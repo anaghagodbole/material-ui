@@ -37,8 +37,9 @@ function CourseDetails() {
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
   const [expandedModules, setExpandedModules] = useState({});
-  
-  const isPurchased = course ? course.purchased : false;
+  const [isPurchased, setIsPurchased] = useState(course ? course.purchased : false)
+  const [expandedModuleIndex, setExpandedModuleIndex] = useState(null);
+  // const isPurchased = course ? course.purchased : false;
   
   console.log("course", course)
   useEffect(() => {
@@ -66,19 +67,23 @@ function CourseDetails() {
     setPurchaseLoading(true);
     
     try {
-      // Call the purchase API
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;
       await courseService.purchaseCourse(id, userId);
       
-      // Update course state to purchased
+      // setCourse({
+      //   ...course,
+      //   purchased: true
+      // });
       setCourse({
         ...course,
-        purchased: true
+        purchased: true,
+        modules: course.modules.map((module) => ({ ...module, locked: false })),
       });
       
       setPurchaseSuccess(true);
       setTimeout(() => setPurchaseSuccess(false), 3000);
+      setIsPurchased(true)
     } catch (err) {
       console.error("Purchase error:", err);
       setError("Failed to purchase course. Please try again later.");
@@ -89,7 +94,7 @@ function CourseDetails() {
   
   const handleUnlockModule = async (moduleId) => {
     try {
-      // Call unlock module API
+
       await courseService.unlockModule(id, moduleId);
       
       setCourse({
@@ -319,11 +324,11 @@ function CourseDetails() {
                       </>
                     ) : (
                       <>
-                        <MDTypography variant="h6" fontWeight="medium" mb={2}>
+                        {/* <MDTypography variant="h6" fontWeight="medium" mb={2}>
                           Your Progress
-                        </MDTypography>
+                        </MDTypography> */}
 
-                        <MDBox display="flex" alignItems="center" mb={1}>
+                        {/* <MDBox display="flex" alignItems="center" mb={1}>
                           <MDBox width="100%" mr={1}>
                             <LinearProgress
                               variant="determinate"
@@ -335,7 +340,7 @@ function CourseDetails() {
                           <MDTypography variant="button" color="text">
                             {progress.toFixed(0)}%
                           </MDTypography>
-                        </MDBox>
+                        </MDBox> */}
 
                         <MDTypography variant="caption" color="text" mb={3}>
                           {unlockedModules} of {course.modules.length} modules
@@ -636,9 +641,13 @@ function CourseDetails() {
                 key={module.id}
                 module={module}
                 index={index + 1}
-                isExpanded={!!expandedModules[module.id]}
+                isExpanded={expandedModuleIndex === index}
                 isPurchased={isPurchased}
-                onToggleExpand={() => toggleModuleExpansion(module.id)}
+                // onToggleExpand={() => toggleModuleExpansion(module.id)}
+                onToggleExpand={() => {
+                  console.log("Clicked index:", index);
+                  setExpandedModuleIndex(expandedModuleIndex === index ? null : index);
+                }}
                 onUnlock={() => handleUnlockModule(module.id)}
               />
             ))}
