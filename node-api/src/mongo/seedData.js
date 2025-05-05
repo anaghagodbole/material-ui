@@ -32,11 +32,23 @@ async function seedDB() {
 
   const createModules = async (courseId, label = "Module") => {
     const moduleDocs = [];
+  
+    const videoUrls = [
+      "https://www.youtube.com/embed/SqcY0GlETPk",
+      "https://www.youtube.com/embed/Ke90Tje7VS0",
+      "https://www.youtube.com/embed/0riHps91AzE",
+      "https://www.youtube.com/embed/DLX62G4lc44",
+      "https://www.youtube.com/embed/fBNz5xF-Kx4",
+      "https://www.youtube.com/embed/Oe421EPjeBE",
+      "https://www.youtube.com/embed/PkZNo7MFNFg",
+      "https://www.youtube.com/embed/8pKjULHzs0s",
+    ];
+  
     for (let i = 1; i <= 8; i++) {
       const module = new Module({
         title: `${label} ${i}`,
         courseId: courseId || null,
-        videoUrl: "https://www.youtube.com/embed/SqcY0GlETPk",
+        videoUrl: videoUrls[i - 1] || videoUrls[0], 
         slideUrls: [
           "https://example.com/sample-slide-1.pdf",
           "https://example.com/sample-slide-2.pdf",
@@ -48,8 +60,9 @@ async function seedDB() {
       await module.save();
       moduleDocs.push(module);
     }
+  
     return moduleDocs;
-  };
+  };  
 
   const createQuiz = async (courseId) => {
     const quiz = new Quiz({

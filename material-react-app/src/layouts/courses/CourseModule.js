@@ -46,7 +46,6 @@ function CourseModule({
       key: "slides",
     },
   ];
-  
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -206,7 +205,7 @@ function CourseModule({
 
             <TabPanel value={activeTab} index={0}>
               <MDBox p={3}>
-                {module.videos ? (
+                {module.videos?.length ? (
                   module.videos.map((video, idx) => (
                     <MDBox key={`video-${idx}`} mb={2}>
                       <MDBox display="flex" alignItems="flex-start" mb={1}>
@@ -240,36 +239,35 @@ function CourseModule({
                           </MDBox>
                         </MDBox>
                       </MDBox>
-                      {idx === 0 && (
-                        <MDBox
-                          sx={{
-                            position: "relative",
+              
+                      <MDBox
+                        sx={{
+                          position: "relative",
+                          width: "100%",
+                          paddingTop: "56.25%",
+                          borderRadius: 1,
+                          overflow: "hidden",
+                          mb: 2,
+                          ml: 7,
+                        }}
+                      >
+                        <iframe
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
                             width: "100%",
-                            paddingTop: "56.25%",
-                            borderRadius: 1,
-                            overflow: "hidden",
-                            mb: 2,
-                            ml: 7,
+                            height: "100%",
+                            border: 0,
                           }}
-                        >
-                          <iframe
-                            style={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              border: 0,
-                            }}
-                            src={video.url}
-                            title={video.title}
-                            allowFullScreen
-                          />
-                        </MDBox>
-                      )}
+                          src={video.url}
+                          title={video.title}
+                          allowFullScreen
+                        />
+                      </MDBox>
                     </MDBox>
                   ))
-                ) : (
+                ) : module.videoUrl ? (
                   <MDBox
                     sx={{
                       position: "relative",
@@ -294,6 +292,8 @@ function CourseModule({
                       allowFullScreen
                     />
                   </MDBox>
+                ) : (
+                  <MDTypography>No video available.</MDTypography>
                 )}
               </MDBox>
             </TabPanel>
