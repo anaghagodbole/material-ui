@@ -47,6 +47,7 @@ import Register from "auth/register";
 import { AuthContext } from "context";
 import UserProfile from "layouts/user-profile";
 import UserManagement from "layouts/user-management";
+import CertificateViewer from "layouts/courses/CertificateViewer";
 import { Helmet } from "react-helmet";
 
 export default function App() {
@@ -278,6 +279,7 @@ export default function App() {
             <Route path="/auth/register" element={<Register />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/certificate/:id" element={<CertificateViewer />} />
             <Route
               exact
               path="user-profile"

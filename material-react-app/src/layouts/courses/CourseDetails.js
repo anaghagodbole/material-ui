@@ -12,6 +12,10 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import CircularProgress from "@mui/material/CircularProgress";
 import LinearProgress from "@mui/material/LinearProgress";
+import Dialog from "@mui/material/Dialog";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -25,6 +29,8 @@ import Footer from "examples/Footer";
 
 import CourseModule from "./CourseModule";
 import TabPanel from "./TabPanel";
+import QuizSystem from "./QuizSystem";
+import CertificateViewer from "./CertificateViewer"; 
 
 function CourseDetails() {
   const { id } = useParams();
@@ -37,17 +43,19 @@ function CourseDetails() {
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
   const [expandedModules, setExpandedModules] = useState({});
-  const [isPurchased, setIsPurchased] = useState(course ? course.purchased : false)
+  const [isPurchased, setIsPurchased] = useState(false);
   const [expandedModuleIndex, setExpandedModuleIndex] = useState(null);
-  // const isPurchased = course ? course.purchased : false;
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [showCertificateViewer, setShowCertificateViewer] = useState(false);
+  const [certificateId, setCertificateId] = useState(null);
   
-  console.log("course", course)
   useEffect(() => {
     const fetchCourse = async () => {
       try {
         setLoading(true);
         const response = await courseService.getCourseById(id);
         setCourse(response.data);
+        setIsPurchased(response.data?.purchased || false);
       } catch (err) {
         console.error("Error fetching course:", err);
         setError("Failed to load course details. Please try again later.");
@@ -71,10 +79,6 @@ function CourseDetails() {
       const userId = user?.id;
       await courseService.purchaseCourse(id, userId);
       
-      // setCourse({
-      //   ...course,
-      //   purchased: true
-      // });
       setCourse({
         ...course,
         purchased: true,
@@ -94,7 +98,6 @@ function CourseDetails() {
   
   const handleUnlockModule = async (moduleId) => {
     try {
-
       await courseService.unlockModule(id, moduleId);
       
       setCourse({
@@ -119,36 +122,15 @@ function CourseDetails() {
     }
   };
   
-  // const toggleModuleExpansion = (moduleId) => {
-  //   console.log('Toggling module:', moduleId);
-  //   console.log('Current expanded modules:', expandedModules);
-    
-  //   setExpandedModules(prev => {
-  //     const newState = {
-  //       ...prev,
-  //       [moduleId]: !prev[moduleId]
-  //     };
-  //     console.log('New expanded modules:', newState);
-  //     return newState;
-  //   });
-  // };
-  
   const toggleModuleExpansion = (moduleId) => {
-    console.log('=== Module Toggle Debug ===');
-    console.log('Module ID clicked:', moduleId);
-    console.log('Current expandedModules state before update:', JSON.stringify(expandedModules, null, 2));
-    
     setExpandedModules(prev => {
-      console.log('Previous state in setter:', JSON.stringify(prev, null, 2));
       const newState = {
         ...prev,
         [moduleId]: !prev[moduleId]
       };
-      console.log('New state to be set:', JSON.stringify(newState, null, 2));
       return newState;
     });
   };
-  
 
   if (loading) {
     return (
@@ -178,8 +160,8 @@ function CourseDetails() {
     );
   }
   
-  const unlockedModules = course.modules.filter(module => !module.locked).length;
-  const progress = (unlockedModules / course.modules.length) * 100;
+  const unlockedModules = course.modules?.filter(module => !module.locked).length || 0;
+  const progress = course.modules?.length ? (unlockedModules / course.modules.length) * 100 : 0;
   
   return (
     <DashboardLayout>
@@ -270,7 +252,7 @@ function CourseDetails() {
                     />
                     <Chip
                       icon={<Icon fontSize="small">people</Icon>}
-                      label={`${course.students.toLocaleString()} students`}
+                      label={`${course.students?.toLocaleString() || 0} students`}
                       size="small"
                       variant="outlined"
                       color="info"
@@ -324,26 +306,8 @@ function CourseDetails() {
                       </>
                     ) : (
                       <>
-                        {/* <MDTypography variant="h6" fontWeight="medium" mb={2}>
-                          Your Progress
-                        </MDTypography> */}
-
-                        {/* <MDBox display="flex" alignItems="center" mb={1}>
-                          <MDBox width="100%" mr={1}>
-                            <LinearProgress
-                              variant="determinate"
-                              value={progress}
-                              color="info"
-                              sx={{ height: 8, borderRadius: 4 }}
-                            />
-                          </MDBox>
-                          <MDTypography variant="button" color="text">
-                            {progress.toFixed(0)}%
-                          </MDTypography>
-                        </MDBox> */}
-
                         <MDTypography variant="caption" color="text" mb={3}>
-                          {unlockedModules} of {course.modules.length} modules
+                          {unlockedModules} of {course.modules?.length || 0} modules
                           completed
                         </MDTypography>
 
@@ -351,10 +315,35 @@ function CourseDetails() {
                           variant="gradient"
                           color="success"
                           fullWidth
-                          sx={{ py: 1.5 }}
+                          sx={{ py: 1.5, mb: 2 }}
                         >
                           Continue Learning
                         </MDButton>
+
+                        <MDBox mt={2} p={2} 
+                          sx={{ 
+                            backgroundColor: 'rgba(73, 163, 241, 0.05)', 
+                            borderRadius: 1,
+                            border: '1px solid rgba(73, 163, 241, 0.2)'
+                          }}
+                        >
+                          <MDTypography variant="subtitle1" fontWeight="bold" mb={1}>
+                            Final Assessment
+                          </MDTypography>
+                          <MDTypography variant="caption" color="text" display="block" mb={2}>
+                            Test your knowledge and earn a certificate
+                          </MDTypography>
+                          <MDButton
+                            variant="gradient"
+                            color="warning"
+                            fullWidth
+                            startIcon={<EmojiEventsIcon />}
+                            onClick={() => setShowQuiz(true)}
+                            sx={{ py: 1.5 }}
+                          >
+                            Start Final Quiz
+                          </MDButton>
+                        </MDBox>
                       </>
                     )}
 
@@ -391,7 +380,7 @@ function CourseDetails() {
                             quiz
                           </Icon>
                           <MDTypography variant="body2">
-                            {course.courseFeatures.quizzes} quizzes
+                            Final course quiz
                           </MDTypography>
                         </Box>
                       )}
@@ -444,51 +433,6 @@ function CourseDetails() {
             </Grid>
           </MDBox>
         </Card>
-
-        {/* <MDBox sx={{ width: "100%", mb: 3 }}>
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            textColor="primary"
-            indicatorColor="info"
-            sx={{
-              "& .MuiTab-root": {
-                minWidth: "auto",
-                mx: 2,
-                px: 2,
-                py: 1.5,
-                borderRadius: 1,
-                "&.Mui-selected": {
-                  bgcolor: "rgba(73, 163, 241, 0.1)",
-                  color: "info.main",
-                  fontWeight: "bold",
-                },
-              },
-            }}
-          >
-            <Tab
-              label="About"
-              icon={<Icon>info</Icon>}
-              iconPosition="start"
-              id="course-tab-1"
-              aria-controls="course-tabpanel-1"
-            />
-            <Tab
-              label="Modules"
-              icon={<Icon>menu_book</Icon>}
-              iconPosition="start"
-              id="course-tab-0"
-              aria-controls="course-tabpanel-0"
-            />
-            <Tab
-              label="Instructor"
-              icon={<Icon>person</Icon>}
-              iconPosition="start"
-              id="course-tab-2"
-              aria-controls="course-tabpanel-2"
-            />
-          </Tabs>
-        </MDBox> */}
 
         <MDBox sx={{ width: "100%", mb: 3 }}>
           <Tabs
@@ -585,7 +529,7 @@ function CourseDetails() {
                     </MDTypography>
 
                     <MDBox display="flex" flexWrap="wrap" gap={1}>
-                      {course.skills.map((skill, index) => (
+                      {course.skills?.map((skill, index) => (
                         <Chip
                           key={index}
                           label={skill}
@@ -604,7 +548,7 @@ function CourseDetails() {
                     </MDTypography>
 
                     <MDBox component="ul" pl={2}>
-                      {course.prerequisites.map((prerequisite, index) => (
+                      {course.prerequisites?.map((prerequisite, index) => (
                         <MDBox component="li" key={index} mb={1}>
                           <MDTypography variant="body2">
                             {prerequisite}
@@ -630,20 +574,19 @@ function CourseDetails() {
               <MDTypography variant="h5">Course Content</MDTypography>
               <Box>
                 <MDTypography variant="button" color="text">
-                  {course.modules.length} modules • {course.duration} hours
+                  {course.modules?.length || 0} modules • {course.duration} hours
                   total
                 </MDTypography>
               </Box>
             </MDBox>
 
-            {course.modules.map((module, index) => (
+            {course.modules?.map((module, index) => (
               <CourseModule
                 key={module.id}
                 module={module}
                 index={index + 1}
                 isExpanded={expandedModuleIndex === index}
                 isPurchased={isPurchased}
-                // onToggleExpand={() => toggleModuleExpansion(module.id)}
                 onToggleExpand={() => {
                   console.log("Clicked index:", index);
                   setExpandedModuleIndex(expandedModuleIndex === index ? null : index);
@@ -698,6 +641,31 @@ function CourseDetails() {
             </MDBox>
           </Card>
         </TabPanel>
+
+        <Dialog
+          open={showQuiz}
+          onClose={() => setShowQuiz(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <MDBox>
+            <IconButton
+              sx={{ position: 'absolute', right: 8, top: 8, zIndex: 1 }}
+              onClick={() => setShowQuiz(false)}
+            >
+              <CloseIcon />
+            </IconButton>
+            <QuizSystem
+              course={course}
+              courseName={course.title}
+              courseId={course._id}
+              onCertificateGenerated={(id) => {
+                setCertificateId(id);
+                setShowCertificateViewer(true);
+              }}
+            />
+          </MDBox>
+        </Dialog>
       </MDBox>
       <Footer />
     </DashboardLayout>

@@ -384,7 +384,6 @@ function CourseModule({
         ) : null}
       </Card>
 
-      {/* Slide Modal */}
       <Modal
         open={slideModalOpen}
         onClose={handleCloseModal}

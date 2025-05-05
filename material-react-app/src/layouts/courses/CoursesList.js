@@ -78,30 +78,6 @@ function CoursesList() {
                 <MDTypography variant="h4" color="white">
                   Courses
                 </MDTypography>
-                {/* <MDBox display="flex" flexWrap="wrap" gap={1}>
-                  {categories.map((category) => (
-                    <Chip
-                      key={category}
-                      label={category === "all" ? "All Categories" : category}
-                      color={
-                        categoryFilter === category ? "primary" : "default"
-                      }
-                      onClick={() => setCategoryFilter(category)}
-                      sx={{
-                        color:
-                          categoryFilter === category ? "white" : "inherit",
-                        fontWeight:
-                          categoryFilter === category ? "bold" : "normal",
-                        "&:hover": {
-                          bgcolor:
-                            categoryFilter === category
-                              ? "primary.dark"
-                              : "grey.300",
-                        },
-                      }}
-                    />
-                  ))}
-                </MDBox> */}
               </MDBox>
 
               <MDBox p={3}>

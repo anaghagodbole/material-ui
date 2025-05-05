@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/runtime": "^7.27.1",
     "@emotion/cache": "^11.7.1",
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",
@@ -15,6 +16,8 @@
     "axios": "^1.5.1",
     "chart.js": "^4.4.0",
     "chroma-js": "2.4.2",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",

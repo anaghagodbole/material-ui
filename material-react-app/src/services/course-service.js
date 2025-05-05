@@ -20,6 +20,22 @@ class CourseService {
   getModuleById(moduleId) {
     return http.get(`/modules/${moduleId}`);
   }
+
+  unlockModule(courseId, moduleId) {
+    return http.post(`/courses/${courseId}/modules/${moduleId}/unlock`);
+  }
+
+  getQuizQuestions(courseId) {
+    return http.get(`/quiz/${courseId}`);
+  }
+
+  submitQuiz(submissionData) {
+    return http.post('/quiz/submit', submissionData);
+  }
+
+  getCertificateById(certificateId) {
+    return http.get(`/quiz/certificates/${certificateId}`);
+  }
 }
 
 export default new CourseService();

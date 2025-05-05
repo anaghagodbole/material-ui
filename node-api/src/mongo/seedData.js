@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { userModel } from "../schemas/user.schema.js";
 import Course from "../schemas/course.schema.js";
 import { Module } from "../schemas/module.schema.js";
+import Quiz from "../schemas/quiz.schema.js";
 import { dbConnect } from "../mongo/index.js";
 
 async function seedDB() {
@@ -11,6 +12,7 @@ async function seedDB() {
   await userModel.deleteMany();
   await Course.deleteMany();
   await Module.deleteMany();
+  await Quiz.deleteMany();
 
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash("secret", salt);
@@ -33,7 +35,7 @@ async function seedDB() {
     for (let i = 1; i <= 8; i++) {
       const module = new Module({
         title: `${label} ${i}`,
-        courseId: courseId || null, // will be assigned after course is created
+        courseId: courseId || null,
         videoUrl: "https://www.youtube.com/embed/SqcY0GlETPk",
         slideUrls: [
           "https://example.com/sample-slide-1.pdf",
@@ -47,6 +49,31 @@ async function seedDB() {
       moduleDocs.push(module);
     }
     return moduleDocs;
+  };
+
+  const createQuiz = async (courseId) => {
+    const quiz = new Quiz({
+      courseId,
+      questions: [
+        {
+          question: "What is JSX?",
+          options: [
+            "JavaScript XML",
+            "JavaScript Extension",
+            "JSON syntax",
+            "A build tool"
+          ],
+          correctAnswer: 0
+        },
+        {
+          question: "Which hook is used for side effects in React?",
+          options: ["useEffect", "useState", "useMemo", "useCallback"],
+          correctAnswer: 0
+        },
+      ],
+      passingScore: 70
+    });
+    await quiz.save();
   };
 
   const coursesToSeed = [
@@ -77,78 +104,52 @@ async function seedDB() {
       },
     },
     {
-      title: "Python for Data Science",
+      title: "Frontend Essentials with React",
       imageUrl:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTT5VvUo0riTkU7dhdAljfghUirtF7J-XcIeg&s",
+        "https://miro.medium.com/v2/resize:fit:800/1*8HAvID5dUbE3n6gZT5W_Wg.png",
       description:
-        "Learn Python programming with a focus on data science workflows",
-      instructor: "Sophia L.",
-      price: 75.0,
+        "Learn React from scratch and build modern, responsive user interfaces.",
+      instructor: "Emily R.",
+      price: 69.99,
       rating: 4.8,
-      category: "Data Science",
+      category: "Frontend Development",
       level: "Beginner",
-      duration: "6h",
+      duration: "6h 45m",
       language: "English",
-      students: 3210,
-      numReviews: 6420,
-      skills: ["Python", "Data Analysis", "Pandas", "Machine Learning Basics"],
-      prerequisites: ["Basic programming knowledge"],
+      students: 3000,
+      numReviews: 3875,
+      skills: ["React", "JSX", "Hooks", "React Router"],
+      prerequisites: ["HTML", "CSS", "JavaScript Basics"],
       courseFeatures: {
         videoLessons: 25,
-        quizzes: 10,
-        assignments: 7,
-        certificate: true,
-        lifetimeAccess: true,
-        accessOnMobileAndDesktop: true,
-      },
-    },
-    {
-      title: "Design Patterns",
-      imageUrl:
-        "https://static.wixstatic.com/media/353803_56f4babad5cc4a0faae91bb5e72808eb~mv2.jpg/v1/fill/w_568,h_320,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/353803_56f4babad5cc4a0faae91bb5e72808eb~mv2.jpg",
-      description:
-        "Understand and apply classic design patterns to write better structured, scalable software.",
-      instructor: "Mark T.",
-      price: 65.0,
-      rating: 4.6,
-      category: "Software Engineering",
-      level: "Intermediate",
-      duration: "4h 30m",
-      language: "English",
-      students: 1400,
-      numReviews: 3890,
-      skills: ["Design Patterns", "OOP", "UML", "Refactoring"],
-      prerequisites: ["OOP Concepts", "Intermediate Programming"],
-      courseFeatures: {
-        videoLessons: 16,
-        quizzes: 6,
-        assignments: 4,
-        certificate: true,
-        lifetimeAccess: true,
-        accessOnMobileAndDesktop: true,
-      },
-    },
-    {
-      title: "Intro to React",
-      imageUrl:
-        "https://process.fs.teachablecdn.com/ADNupMnWyR7kCWRvm76Laz/resize=width:705/https://www.filepicker.io/api/file/fGWjtyQtG4JE7UXgaPAN",
-      description:
-        "Learn the fundamentals of React, one of the most popular JavaScript libraries for building user interfaces. This includes understanding how to write and structure JSX, create and manage reusable components, and effectively use hooks like useState and useEffect to handle state and side effects within your application.",
-      instructor: "Jennifer J.",
-      price: 89.99,
-      rating: 4.5,
-      category: "Web Development",
-      level: "Beginner",
-      duration: "3h 20m",
-      language: "English",
-      students: 1587,
-      numReviews: 5000,
-      skills: ["JSX", "Components", "Hooks", "React Basics"],
-      prerequisites: ["Basic HTML/CSS", "JavaScript Fundamentals"],
-      courseFeatures: {
-        videoLessons: 14,
         quizzes: 8,
-        assignments: 6,
+        assignments: 3,
+        certificate: true,
+        lifetimeAccess: true,
+        accessOnMobileAndDesktop: true,
+      },
+    },
+    {
+      title: "Full-Stack Web Development Bootcamp",
+      imageUrl:
+        "https://codeop.tech/wp-content/uploads/2021/03/full-stack-developer-1.jpg",
+      description:
+        "Become a full-stack developer with hands-on projects using React and Node.js.",
+      instructor: "Michael S.",
+      price: 99.99,
+      rating: 4.9,
+      category: "Full-Stack Development",
+      level: "Advanced",
+      duration: "10h 30m",
+      language: "English",
+      students: 1500,
+      numReviews: 2456,
+      skills: ["React", "Node.js", "MongoDB", "API Integration", "Deployment"],
+      prerequisites: ["Frontend & Backend Basics", "JavaScript Proficiency"],
+      courseFeatures: {
+        videoLessons: 40,
+        quizzes: 12,
+        assignments: 8,
         certificate: true,
         lifetimeAccess: true,
         accessOnMobileAndDesktop: true,
@@ -170,6 +171,8 @@ async function seedDB() {
         return mod.save();
       })
     );
+
+    await createQuiz(course._id);
   }
 }
 
