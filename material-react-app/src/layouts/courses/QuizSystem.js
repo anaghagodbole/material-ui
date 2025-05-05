@@ -95,14 +95,14 @@ const QuizSystem = ({ course, courseName, courseId, onCertificateGenerated, onQu
           score,
           completionDate: new Date().toISOString(),
           courseId,
-          shareUrl: `${window.location.origin}/certificate/${certificateId}`,
+          shareUrl: `${process.env.REACT_APP_NGROK_URL}/certificates/${certificateId}`,
         };
 
         localStorage.setItem(`certificate-${certificateId}`, JSON.stringify(certificate));
         setCertificateData(certificate);
         setQuizCompleted(true);
         setShowCertificate(true);
-        if (onCertificateGenerated) onCertificateGenerated(certificateId); // ✅ key line
+        if (onCertificateGenerated) onCertificateGenerated(certificateId); 
       } else {
         setQuizCompleted(true);
       }

@@ -68,11 +68,14 @@ const CertificateViewer = ({ certificateId: propId }) => {
     pdf.save(`certificate-${certificate?.studentName || "student"}.pdf`);
   };
 
-  const handleShareLinkedIn = () => {
+const handleShareLinkedIn = () => {
     if (!certificate) return;
-    const url = encodeURIComponent(certificate.shareUrl);
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
-    // setShareSnackbar(true);
+  
+    const ngrokUrl = process.env.REACT_APP_NGROK_URL;
+    const previewUrl = `${ngrokUrl}/certificates/${certificateId}/preview`;
+    const encodedUrl = encodeURIComponent(previewUrl);
+  
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, '_blank');
   };
 
   const handleShareTwitter = () => {

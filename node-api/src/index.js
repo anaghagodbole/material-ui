@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import "./passport.js";
 import passport from "passport"; 
 import { dbConnect } from "./mongo";
-import { meRoutes, authRoutes, courseRoutes, quizRoutes } from "./routes";
+import { meRoutes, authRoutes, courseRoutes, quizRoutes, CertificateRoute } from "./routes";
 import path from "path";
 import * as fs from "fs";
 import cron from "node-cron";
@@ -39,10 +39,12 @@ app.get("/", function (req, res) {
 });
 
 app.use(passport.initialize());
+app.use("/certificate-images", express.static("public/certificate-images"));
 app.use("/", authRoutes);
 app.use("/me", meRoutes);
 app.use("/courses", courseRoutes);
 app.use("/quiz", quizRoutes);
+app.use("/certificates", CertificateRoute)
 
 if (process.env.SCHEDULE_HOUR) {
   cron.schedule(`0 */${process.env.SCHEDULE_HOUR} * * *'`, () => {
