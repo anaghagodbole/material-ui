@@ -51,31 +51,78 @@ const CertificateViewer = ({ certificateId: propId }) => {
     fetchCertificate();
   }, [certificateId]);
 
+
+  useEffect(() => {
+    const uploadCertificateImage = async () => {
+      if (!certificate || !certificateRef.current) return;
+  
+      const canvas = await html2canvas(certificateRef.current, {
+        scale: 2,
+        useCORS: true,
+      });
+  
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", 1.0)
+      );
+  
+      const formData = new FormData();
+      console.log("certificate is ", certificate)
+      formData.append("image", blob, `certificate-${certificate._id}.jpeg`);
+  
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL}/certificates/upload-image`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+  
+        if (response.ok) {
+          console.log("Certificate image uploaded successfully.");
+        } else {
+          console.error("Failed to upload certificate image.");
+        }
+      } catch (err) {
+        console.error("Error uploading certificate image:", err);
+      }
+  };
+  
+    uploadCertificateImage();
+  }, [certificate]);
+
   const handlePrint = () => {
     window.print();
   };
 
   const handleDownload = async () => {
     if (!certificateRef.current) return;
-    const canvas = await html2canvas(certificateRef.current);
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF("landscape", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-
-    pdf.addImage(imgData, "PNG", 0, 0, width, height);
-    pdf.save(`certificate-${certificate?.studentName || "student"}.pdf`);
+    const canvas = await html2canvas(certificateRef.current, {
+      scale: 2, 
+      useCORS: true, 
+    });
+  
+    const imageData = canvas.toDataURL("image/jpeg", 1.0);
+  
+    const link = document.createElement("a");
+    link.href = imageData;
+    link.download = `certificate-${certificate?.studentName || "student"}.jpeg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
 const handleShareLinkedIn = () => {
-    if (!certificate) return;
+   if (!certificate || !certificate.id) return;
   
     const ngrokUrl = process.env.REACT_APP_NGROK_URL;
-    const previewUrl = `${ngrokUrl}/certificates/${certificateId}/preview`;
-    const encodedUrl = encodeURIComponent(previewUrl);
-  
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`, '_blank');
+    const imageUrl = `${ngrokUrl}/certificate-images/certificate-${certificate.id}.jpeg`;
+    const encodedUrl = encodeURIComponent(imageUrl);
+ 
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      "_blank"
+    );
   };
 
   const handleShareTwitter = () => {

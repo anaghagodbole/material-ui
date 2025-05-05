@@ -19,7 +19,7 @@ const app = express();
 const whitelist = [process.env.APP_URL_CLIENT];
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || whitelist.indexOf(origin) !== -1) {
+    if (!origin || origin.includes("localhost")) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -39,7 +39,7 @@ app.get("/", function (req, res) {
 });
 
 app.use(passport.initialize());
-app.use("/certificate-images", express.static("public/certificate-images"));
+app.use(express.static(path.join(process.cwd(), "public")));
 app.use("/", authRoutes);
 app.use("/me", meRoutes);
 app.use("/courses", courseRoutes);

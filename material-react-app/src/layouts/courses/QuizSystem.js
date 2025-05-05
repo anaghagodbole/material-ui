@@ -128,11 +128,17 @@ const QuizSystem = ({ course, courseName, courseId, onCertificateGenerated, onQu
 };
 
   const handleShareLinkedIn = () => {
-    if (!certificateData) return;
-    const url = encodeURIComponent(certificateData.shareUrl);
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
-    setShareSnackbar(true);
-  };
+      if (!certificate || !certificate.id) return;
+  
+      const ngrokUrl = process.env.REACT_APP_NGROK_URL;
+      const imageUrl = `${ngrokUrl}/certificate-images/certificate-${certificate.id}.jpeg`;
+      const encodedUrl = encodeURIComponent(imageUrl);
+  
+      window.open(
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+        "_blank"
+      );
+    };
 
   const handleShareTwitter = () => {
     if (!certificateData) return;
