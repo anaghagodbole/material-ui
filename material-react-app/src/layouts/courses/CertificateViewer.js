@@ -3,12 +3,15 @@ import { useParams } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import PrintIcon from '@mui/icons-material/Print';
 import DownloadIcon from '@mui/icons-material/Download';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import TwitterIcon from '@mui/icons-material/Twitter';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDAlert from "components/MDAlert";
 import courseService from "services/course-service";
+import MDButton from "components/MDButton";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -34,7 +37,8 @@ const CertificateViewer = ({ certificateId: propId }) => {
       try {
         const response = await courseService.getCertificateById(certificateId);
         console.log(response)
-        setCertificate(response);
+        console.log(response.certificate.courseName)
+        setCertificate(response.certificate);
         setError(null);
       } catch (err) {
         console.error("Error fetching certificate:", err);
@@ -64,6 +68,22 @@ const CertificateViewer = ({ certificateId: propId }) => {
     pdf.save(`certificate-${certificate?.studentName || "student"}.pdf`);
   };
 
+  const handleShareLinkedIn = () => {
+    if (!certificate) return;
+    const url = encodeURIComponent(certificate.shareUrl);
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+    // setShareSnackbar(true);
+  };
+
+  const handleShareTwitter = () => {
+    if (!certificate) return;
+    const text = encodeURIComponent(`I just completed ${certificate.courseName} with ${certificate.score}%! 🎓`);
+    const url = encodeURIComponent(certificate.shareUrl);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+    // setShareSnackbar(true);
+  };
+
+
   if (loading) {
     return (
       <MDBox display="flex" justifyContent="center" alignItems="center" height="400px">
@@ -86,23 +106,10 @@ const CertificateViewer = ({ certificateId: propId }) => {
         gap={3}
         mb={4}
       >
-        <Button
-          variant="contained"
-          startIcon={<PrintIcon />}
-          onClick={handlePrint}
-          size="large"
-        >
-          Print Certificate
-        </Button>
-        <Button
-          variant="contained"
-          startIcon={<DownloadIcon />}
-          onClick={handleDownload}
-          size="large"
-          color="primary"
-        >
-          Download PDF
-        </Button>
+         <MDButton variant="gradient" color="info" startIcon={<PrintIcon />} onClick={handlePrint}>Print</MDButton>
+         <MDButton variant="gradient" color="info" startIcon={<DownloadIcon />} onClick={handleDownload}>Download</MDButton>
+         <MDButton variant="gradient" color="info" startIcon={<LinkedInIcon />} onClick={handleShareLinkedIn} sx={{ backgroundColor: '#0077B5' }}>LinkedIn</MDButton>
+         <MDButton variant="gradient" color="info" startIcon={<TwitterIcon />} onClick={handleShareTwitter} sx={{ backgroundColor: '#1DA1F2' }}>Twitter</MDButton>
       </MDBox>
 
       <MDBox

@@ -16,8 +16,12 @@ import MDButton from "components/MDButton";
 import MDAlert from "components/MDAlert";
 import courseService from "services/course-service";
 import CertificateViewer from "./CertificateViewer";
+import PrintIcon from '@mui/icons-material/Print';
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
-const QuizSystem = ({ course, courseName, courseId, onCertificateGenerated }) => {
+
+const QuizSystem = ({ course, courseName, courseId, onCertificateGenerated, onQuizClose }) => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState([]);
@@ -110,28 +114,18 @@ const QuizSystem = ({ course, courseName, courseId, onCertificateGenerated }) =>
     }
   };
 
-  const handleDownload = () => {
-    if (certificateRef.current) {
-      const element = certificateRef.current;
-      const htmlContent = element.innerHTML;
-      const blob = new Blob([`
-        <!DOCTYPE html>
-        <html><head><style>
-        body { font-family: Arial, sans-serif; padding: 40px; }
-        .certificate { max-width: 800px; margin: 0 auto; }
-        </style></head><body><div class="certificate">
-        ${htmlContent}</div></body></html>
-      `], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `certificate-${certificateData.id}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }
-  };
+  const handleDownload = async () => {
+    if (!certificateRef.current) return;
+    const canvas = await html2canvas(certificateRef.current);
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("landscape", "mm", "a4");
+    const width = pdf.internal.pageSize.getWidth();
+    const height = (canvas.height * width) / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, width, height);
+    pdf.save(`certificate-${certificate?.studentName || "student"}.pdf`);
+};
 
   const handleShareLinkedIn = () => {
     if (!certificateData) return;
@@ -221,11 +215,21 @@ const QuizSystem = ({ course, courseName, courseId, onCertificateGenerated }) =>
     );
   };
 
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <MDBox>
       {!quizCompleted ? <QuizQuestion /> : <QuizResults />}
 
-      <Dialog open={showCertificate} onClose={() => setShowCertificate(false)} maxWidth="md" fullWidth>
+      <Dialog open={showCertificate} onClose={() =>{
+         setShowCertificate(false)
+         onQuizClose(quizCompleted)
+        }} 
+         maxWidth="md" 
+         fullWidth>
         <DialogTitle>
           <MDBox display="flex" justifyContent="space-between" alignItems="center">
             <MDTypography variant="h5">Your Certificate</MDTypography>
@@ -237,11 +241,12 @@ const QuizSystem = ({ course, courseName, courseId, onCertificateGenerated }) =>
           {certificateData && <Certificate data={certificateData} />}
         </DialogContent>
         <DialogActions>
-          <MDBox display="flex" gap={2} p={2}>
+          {/* <MDBox display="flex" gap={2} p={2}>
+            <MDButton variant="gradient" color="info" startIcon={<PrintIcon />} onClick={handlePrint}>Print</MDButton>
             <MDButton variant="gradient" color="info" startIcon={<DownloadIcon />} onClick={handleDownload}>Download</MDButton>
             <MDButton variant="gradient" color="info" startIcon={<LinkedInIcon />} onClick={handleShareLinkedIn} sx={{ backgroundColor: '#0077B5' }}>LinkedIn</MDButton>
             <MDButton variant="gradient" color="info" startIcon={<TwitterIcon />} onClick={handleShareTwitter} sx={{ backgroundColor: '#1DA1F2' }}>Twitter</MDButton>
-          </MDBox>
+          </MDBox> */}
         </DialogActions>
       </Dialog>
 

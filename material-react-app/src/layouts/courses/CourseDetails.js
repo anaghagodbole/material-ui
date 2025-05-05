@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import courseService from "services/course-service";
 
@@ -30,12 +30,12 @@ import Footer from "examples/Footer";
 import CourseModule from "./CourseModule";
 import TabPanel from "./TabPanel";
 import QuizSystem from "./QuizSystem";
-import CertificateViewer from "./CertificateViewer"; 
+import CertificateViewer from "./CertificateViewer";
 
 function CourseDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -48,7 +48,9 @@ function CourseDetails() {
   const [showQuiz, setShowQuiz] = useState(false);
   const [showCertificateViewer, setShowCertificateViewer] = useState(false);
   const [certificateId, setCertificateId] = useState(null);
-  
+  const [isQuizCompleted, setIsQuizCompleted] = useState(false);
+  const certificateRef = useRef(null);
+
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -56,38 +58,46 @@ function CourseDetails() {
         const response = await courseService.getCourseById(id);
         setCourse(response.data);
         setIsPurchased(response.data?.purchased || false);
+  
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && response.data?.purchased) {
+          const certResponse = await courseService.getCertificateByUserAndCourse(user.id, id);
+          if (certResponse?.certificate) {
+            setIsQuizCompleted(true);
+            setCertificateId(certResponse.certificate.id);
+          }
+        }
       } catch (err) {
-        console.error("Error fetching course:", err);
-        setError("Failed to load course details. Please try again later.");
+        // console.error("Error fetching course or certificate:", err);
       } finally {
         setLoading(false);
       }
     };
   
     fetchCourse();
-  }, [id]);
-  
+  }, [id]);  
+
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
-  
+
   const handlePurchase = async () => {
     setPurchaseLoading(true);
-    
+
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;
       await courseService.purchaseCourse(id, userId);
-      
+
       setCourse({
         ...course,
         purchased: true,
         modules: course.modules.map((module) => ({ ...module, locked: false })),
       });
-      
+
       setPurchaseSuccess(true);
       setTimeout(() => setPurchaseSuccess(false), 3000);
-      setIsPurchased(true)
+      setIsPurchased(true);
     } catch (err) {
       console.error("Purchase error:", err);
       setError("Failed to purchase course. Please try again later.");
@@ -95,25 +105,23 @@ function CourseDetails() {
       setPurchaseLoading(false);
     }
   };
-  
+
   const handleUnlockModule = async (moduleId) => {
     try {
       await courseService.unlockModule(id, moduleId);
-      
+
       setCourse({
         ...course,
-        modules: course.modules.map(module => 
-          module.id === moduleId 
-            ? { ...module, locked: false } 
-            : module
-        )
+        modules: course.modules.map((module) =>
+          module.id === moduleId ? { ...module, locked: false } : module
+        ),
       });
-      
-      setExpandedModules(prev => ({
+
+      setExpandedModules((prev) => ({
         ...prev,
-        [moduleId]: true
+        [moduleId]: true,
       }));
-      
+
       return true;
     } catch (err) {
       console.error("Unlock error:", err);
@@ -121,12 +129,12 @@ function CourseDetails() {
       return false;
     }
   };
-  
+
   const toggleModuleExpansion = (moduleId) => {
-    setExpandedModules(prev => {
+    setExpandedModules((prev) => {
       const newState = {
         ...prev,
-        [moduleId]: !prev[moduleId]
+        [moduleId]: !prev[moduleId],
       };
       return newState;
     });
@@ -136,22 +144,41 @@ function CourseDetails() {
     return (
       <DashboardLayout>
         <DashboardNavbar />
-        <MDBox display="flex" justifyContent="center" alignItems="center" height="80vh">
+        <MDBox
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="80vh"
+        >
           <CircularProgress color="info" />
         </MDBox>
         <Footer />
       </DashboardLayout>
     );
   }
-  
+
   if (!course) {
     return (
       <DashboardLayout>
         <DashboardNavbar />
-        <MDBox display="flex" justifyContent="center" alignItems="center" height="80vh" flexDirection="column">
-          <Icon color="error" fontSize="large" sx={{ mb: 2, fontSize: 60 }}>error_outline</Icon>
-          <MDTypography variant="h4" mb={2}>Course not found</MDTypography>
-          <MDButton variant="gradient" color="info" onClick={() => navigate('/courses')}>
+        <MDBox
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="80vh"
+          flexDirection="column"
+        >
+          <Icon color="error" fontSize="large" sx={{ mb: 2, fontSize: 60 }}>
+            error_outline
+          </Icon>
+          <MDTypography variant="h4" mb={2}>
+            Course not found
+          </MDTypography>
+          <MDButton
+            variant="gradient"
+            color="info"
+            onClick={() => navigate("/courses")}
+          >
             Back to Courses
           </MDButton>
         </MDBox>
@@ -159,10 +186,13 @@ function CourseDetails() {
       </DashboardLayout>
     );
   }
-  
-  const unlockedModules = course.modules?.filter(module => !module.locked).length || 0;
-  const progress = course.modules?.length ? (unlockedModules / course.modules.length) * 100 : 0;
-  
+
+  const unlockedModules =
+    course.modules?.filter((module) => !module.locked).length || 0;
+  const progress = course.modules?.length
+    ? (unlockedModules / course.modules.length) * 100
+    : 0;
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -175,7 +205,8 @@ function CourseDetails() {
 
         {purchaseSuccess && (
           <MDAlert color="success" dismissible sx={{ mb: 3 }}>
-            Course successfully purchased! You now have full access to all modules.
+            Course successfully purchased! You now have full access to all
+            modules.
           </MDAlert>
         )}
 
@@ -252,7 +283,9 @@ function CourseDetails() {
                     />
                     <Chip
                       icon={<Icon fontSize="small">people</Icon>}
-                      label={`${course.students?.toLocaleString() || 0} students`}
+                      label={`${
+                        course.students?.toLocaleString() || 0
+                      } students`}
                       size="small"
                       variant="outlined"
                       color="info"
@@ -304,11 +337,11 @@ function CourseDetails() {
                           )}
                         </MDButton>
                       </>
-                    ) : (
+                    ) : !isQuizCompleted ? (
                       <>
                         <MDTypography variant="caption" color="text" mb={3}>
-                          {unlockedModules} of {course.modules?.length || 0} modules
-                          completed
+                          {unlockedModules} of {course.modules?.length || 0}{" "}
+                          modules completed
                         </MDTypography>
 
                         <MDButton
@@ -320,17 +353,28 @@ function CourseDetails() {
                           Continue Learning
                         </MDButton>
 
-                        <MDBox mt={2} p={2} 
-                          sx={{ 
-                            backgroundColor: 'rgba(73, 163, 241, 0.05)', 
+                        <MDBox
+                          mt={2}
+                          p={2}
+                          sx={{
+                            backgroundColor: "rgba(73, 163, 241, 0.05)",
                             borderRadius: 1,
-                            border: '1px solid rgba(73, 163, 241, 0.2)'
+                            border: "1px solid rgba(73, 163, 241, 0.2)",
                           }}
                         >
-                          <MDTypography variant="subtitle1" fontWeight="bold" mb={1}>
+                          <MDTypography
+                            variant="subtitle1"
+                            fontWeight="bold"
+                            mb={1}
+                          >
                             Final Assessment
                           </MDTypography>
-                          <MDTypography variant="caption" color="text" display="block" mb={2}>
+                          <MDTypography
+                            variant="caption"
+                            color="text"
+                            display="block"
+                            mb={2}
+                          >
                             Test your knowledge and earn a certificate
                           </MDTypography>
                           <MDButton
@@ -342,6 +386,44 @@ function CourseDetails() {
                             sx={{ py: 1.5 }}
                           >
                             Start Final Quiz
+                          </MDButton>
+                        </MDBox>
+                      </>
+                    ) : (
+                      <>
+                        <MDBox
+                          mt={2}
+                          p={2}
+                          sx={{
+                            backgroundColor: "rgba(73, 163, 241, 0.05)",
+                            borderRadius: 1,
+                            border: "1px solid rgba(73, 163, 241, 0.2)",
+                          }}
+                        >
+                          <MDTypography
+                            variant="subtitle1"
+                            fontWeight="bold"
+                            mb={1}
+                          >
+                            Congratulations!
+                          </MDTypography>
+                          <MDTypography
+                            variant="caption"
+                            color="text"
+                            display="block"
+                            mb={2}
+                          >
+                            You've successfully completed the quiz.
+                          </MDTypography>
+                          <MDButton
+                            variant="gradient"
+                            color="info"
+                            fullWidth
+                            startIcon={<EmojiEventsIcon />}
+                            onClick={() => navigate(`/certificate/${certificateId}`)}
+                            sx={{ py: 1.5 }}
+                          >
+                            Download Certificate
                           </MDButton>
                         </MDBox>
                       </>
@@ -574,8 +656,8 @@ function CourseDetails() {
               <MDTypography variant="h5">Course Content</MDTypography>
               <Box>
                 <MDTypography variant="button" color="text">
-                  {course.modules?.length || 0} modules • {course.duration} hours
-                  total
+                  {course.modules?.length || 0} modules • {course.duration}{" "}
+                  hours total
                 </MDTypography>
               </Box>
             </MDBox>
@@ -589,7 +671,9 @@ function CourseDetails() {
                 isPurchased={isPurchased}
                 onToggleExpand={() => {
                   console.log("Clicked index:", index);
-                  setExpandedModuleIndex(expandedModuleIndex === index ? null : index);
+                  setExpandedModuleIndex(
+                    expandedModuleIndex === index ? null : index
+                  );
                 }}
                 onUnlock={() => handleUnlockModule(module.id)}
               />
@@ -650,7 +734,7 @@ function CourseDetails() {
         >
           <MDBox>
             <IconButton
-              sx={{ position: 'absolute', right: 8, top: 8, zIndex: 1 }}
+              sx={{ position: "absolute", right: 8, top: 8, zIndex: 1 }}
               onClick={() => setShowQuiz(false)}
             >
               <CloseIcon />
@@ -662,6 +746,13 @@ function CourseDetails() {
               onCertificateGenerated={(id) => {
                 setCertificateId(id);
                 setShowCertificateViewer(true);
+              }}
+              onQuizClose={(quizCompleted) => {
+                console.log("quizCompleted ****", quizCompleted)
+                if (quizCompleted) {
+                  setIsQuizCompleted(true);
+                }
+                true;
               }}
             />
           </MDBox>

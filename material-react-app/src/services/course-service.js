@@ -36,6 +36,10 @@ class CourseService {
   getCertificateById(certificateId) {
     return http.get(`/quiz/certificates/${certificateId}`);
   }
+
+  getCertificateByUserAndCourse(userId, courseId) {
+    return http.get(`/quiz/certificates/user/${userId}/course/${courseId}`);
+  }
 }
 
 export default new CourseService();

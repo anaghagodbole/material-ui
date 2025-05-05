@@ -184,7 +184,7 @@ const routes = [
     name: "Courses",
     key: "courses",
     icon: <Icon fontSize="small">school</Icon>,
-    route: "/courses/1",
+    route: "/courses",
     component: <CoursesList />,
   },
   {

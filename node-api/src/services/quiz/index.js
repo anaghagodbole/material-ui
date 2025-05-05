@@ -42,11 +42,12 @@ export const submitQuiz = async (req, res) => {
 
     if (passed) {
       const certificate = new Certificate({
-        studentId: userId,
+        userId: userId,
         courseId,
         courseName: quiz.courseName,
         score,
         completionDate: new Date(),
+        quizCompleted: true
       });
       await certificate.save();
       certificateId = certificate._id;
@@ -92,8 +93,36 @@ export const getCertificateById = async (req, res) => {
   
       return res.status(200).json({ certificate: certificateData });
     } catch (err) {
-      console.error("Error fetching certificate:", err);
       res.status(500).json({ message: "Server error" });
     }
 };
+
+export const getCertificateByUserAndCourse = async (req, res) => {
+    const { userId, courseId } = req.params;
+    console.log(userId, courseId)
+    try {
+      const certificate = await Certificate.findOne({ userId, courseId })
+        .populate("userId", "name email")
+        .populate("courseId", "title");
+  
+      if (!certificate) {
+        return res.status(404).json({ message: "Certificate not found" });
+      }
+  
+      const certificateData = {
+        id: certificate._id,
+        studentName: certificate.userId.name,
+        email: certificate.userId.email,
+        courseName: certificate.courseId.title,
+        score: certificate.score,
+        passed: certificate.passed,
+        completionDate: certificate.issuedAt,
+      };
+  
+      return res.status(200).json({ certificate: certificateData });
+    } catch (err) {
+      res.status(500).json({ message: "Server error" });
+    }
+};
+  
   

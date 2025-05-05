@@ -5,6 +5,7 @@ const certificateSchema = new mongoose.Schema({
     score: Number,
     passed: Boolean,
     issuedAt: { type: Date, default: Date.now },
+    quizCompleted: { type: Boolean, default: false }
   });
 
 export const Certificate = mongoose.model("Certificate", certificateSchema);
